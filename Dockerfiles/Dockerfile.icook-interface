@@ -1,0 +1,12 @@
+FROM python:3.7.4
+
+USER root
+COPY requirements.txt /tmp/
+WORKDIR /home/dash
+RUN pip install -r /tmp/requirements.txt
+
+ENV ICOOK_KEY=enter_your_key_here
+
+EXPOSE 8050
+ENV PYTHONUNBUFFERED 0
+CMD ["python","-u","iCook.py"]

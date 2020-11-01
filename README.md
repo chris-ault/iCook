@@ -17,12 +17,15 @@ We all have ingriedents, but might be missing a few to make delicious recipies, 
 
 Usage
 ------
-This application can be run via Python 3.7 but we will need to install the accomponying requirements.  Finally run python iCook.py with your API key as an environment variable titled **ICOOKKEY**:
+This application must be run via Python 3.7 and we will need to install the accomponying requirements first.:
 ```
 $ python -V
 Python 3.7.4
 $ pip install -r requirements.txt
 ...
+```
+Finally run python iCook.py with your API key as an environment variable titled **ICOOKKEY**
+```
 $ ICOOK_KEY=your_spoonacular_key_here python iCook.py
 ```
 
@@ -38,6 +41,7 @@ Docker will create a image and container for each a iCook interface and a Seleni
 You'll need to supply your own API key to the **iCook/Dockerfiles/Dockerfile.icook-interface** file under Environment variables replacing *enter_your_key_here* with your own Spoonacular API key.  
 
 
+**~/iCook/Dockerfiles/Dockerfile.icook-interface**
 ```
 ENV ICOOK_KEY=enter_your_key_here
 ```
@@ -48,3 +52,11 @@ Once the iCook key env variable has been set, you're good to start the test harn
 ```
 $ docker-compose up test
 ```
+
+In addition to selenium testing we can test the make cart function with unittesting via Python unittest as follows:
+```
+$ ICOOK_KEY=1 python -m unittest test.test_helpers
+```
+
+## Deployment into the wild
+To release this beyond localhost we would need to use a WSGI server, examples exist on the [Dash webpage](https://dash.plotly.com/deployment)

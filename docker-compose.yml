@@ -1,0 +1,26 @@
+version: '3.1'
+services:
+  dash:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.icook-interface
+    image: icook-interface:latest
+    environment:
+      ENV PYTHONUNBUFFERED: 0
+    volumes:
+      - ./:/home/dash
+    command: python iCook.py
+    expose:
+      - "8050"
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.chromedriver-sel
+    image: python-chromedriver:3.7
+    volumes:
+      - ./test/:/usr/workspace
+    working_dir:  /usr/workspace/
+    command: python iCook_tester.py http://dash:8050
+    links:
+      - dash:icook-interface
