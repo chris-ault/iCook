@@ -12,6 +12,8 @@ services:
     command: python iCook.py
     expose:
       - "8050"
+    networks:
+      - icook-net
 
   test:
     build:
@@ -24,3 +26,9 @@ services:
     command: python iCook_tester.py http://dash:8050
     links:
       - dash:icook-interface
+    networks:
+      - icook-net
+
+networks:
+  icook-net:
+    driver: bridge
