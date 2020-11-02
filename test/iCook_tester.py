@@ -14,6 +14,7 @@ except IndexError:
     print("No Test Address given. Defaulting to localhost")
     TEST_ADDRESS = 'http://localhost:8050'
 
+
 class TestTemplate(unittest.TestCase):
     """Include test cases on a given url"""
     def setUp(self):
@@ -45,6 +46,7 @@ class TestTemplate(unittest.TestCase):
         el.click()
         # Find the div for the recipe section
         el = self.driver.find_element_by_xpath("//div[@id='recipe_sub']")
+
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
