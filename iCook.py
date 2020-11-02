@@ -115,6 +115,7 @@ def populate_ingredient_options(search_value, value):
     ingredients from this long list that will become outdated
     https://spoonacular.com/food-api/docs#List-of-Ingredients
     """
+    # Stop dash from firing this callback until we are ready
     if not search_value:
         raise PreventUpdate
     logging.debug(f'Doing a ingredient query on \'{search_value}\'')
@@ -134,8 +135,7 @@ def populate_ingredient_options(search_value, value):
         logging.debug(f"Response is:  {ingredients}")
     except HTTPError as http_err:
         logging.error(f'HTTP error occurred: {http_err}')
-    except Exception as err:
-        logging.error(f'Other error occurred: {err}')
+
     options = [{'label': i['name'].title(), 'value':i['name']}
                for i in ingredients]
 
@@ -218,8 +218,6 @@ def generate_recipies(search_btn, skip_btn, clear_btn, ingredients_selected,
             logging.debug(f"Response is:  {recipies}")
         except HTTPError as http_err:
             logging.error(f'HTTP error occurred: {http_err}')
-        except Exception as err:
-            logging.error(f'Other error occurred: {err}')
 
     # When clearing we will hide the recipe div and blank recipe elements
     # rename the save ingredients button to clear the number value
@@ -272,8 +270,6 @@ def generate_recipies(search_btn, skip_btn, clear_btn, ingredients_selected,
         recipe_steps = response.json()
     except HTTPError as http_err:
         print(f'HTTP error occurred: {http_err}')
-    except Exception as err:
-        print(f'Other error occurred: {err}')
 
     if len(recipe_steps) > 0:
         recipe_steps = [html.H5("Steps:"), html.Ol([html.Li(
@@ -368,8 +364,6 @@ def save_to_cart(save_cart, empty_cart, current_cart, missing_ing):
                 logging.error(
                     f'HTTP error occurred getting prices: {http_err}')
                 ingredient.update({'cost': 0.00})
-            except Exception as err:
-                logging.error(f'Other error occurred: {err}')
 
         logging.debug(
             f"Prices have been appended now display dataframe {missing_ing}")
