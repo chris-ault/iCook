@@ -13,7 +13,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 
 
-logging.basicConfig(level=logging.ERROR)
+logging.basicConfig(level=logging.INFO)
 
 
 API_SECRET = environ.get("ICOOK_KEY", 'missing_key')
@@ -54,7 +54,7 @@ app.layout = html.Div(
             html.Div(id='recipe-title',children=None),
             html.Img(id='recipe-img'),
             html.Br(),
-            "Ingredients we already have:",
+            html.H5("Ingredients you already have:"),
             html.Div(id='recipe-ingredients', children='ingredients'),
             dcc.Store(id='missing-ingredients'),
         html.Button("Save missing ingredients to cart", id="save-missing", n_clicks_timestamp=1),
@@ -156,7 +156,7 @@ def update_recipe_option(search_btn, skip_btn, clear_btn, ingredients_selected, 
     recipe_buffer = 30
 
     if search_btn > clear_btn and search_btn > skip_btn:
-        logging.info("search clicked")
+        logging.info("search clicked, ingredients selected are: {}".format(','.join(ingredients_selected)))
         # Here we should fire the search recipe with ingredients_selected query 
         # to update the sample_recipies variable
         # https://api.spoonacular.com/recipes/findByIngredients?ingredients=apples,+flour,+sugar&number=2
@@ -188,7 +188,7 @@ def update_recipe_option(search_btn, skip_btn, clear_btn, ingredients_selected, 
             cur_recipe_idx = 0
     
     # recipe title
-    rtitle = sample_recipies[cur_recipe_idx]['title']
+    rtitle = html.H4(sample_recipies[cur_recipe_idx]['title'])
     
     # recipe image
     rimg = sample_recipies[cur_recipe_idx]['image']
@@ -196,13 +196,30 @@ def update_recipe_option(search_btn, skip_btn, clear_btn, ingredients_selected, 
     # recipe ingredients we have
     ring = [html.Img(src=n['image']) for n in sample_recipies[cur_recipe_idx]['usedIngredients']]
     
+    # TODO: Make 'recipe steps' a first class class
+    # Quick fix: Append to our ingredients photo a header and list of steps
+    current_id = sample_recipies[cur_recipe_idx]['id']
+    logging.info("Current recipe id: {}".format(current_id))
+    try:
+        response = requests.get('https://api.spoonacular.com/recipes/' + str(current_id) + '/analyzedInstructions' + "?stepBreakdown=true&apiKey=" + API_SECRET)
+        response.raise_for_status()
+        # access JSOn content
+        recipe_steps = response.json()
+    except HTTPError as http_err:
+        print(f'HTTP error occurred: {http_err}')
+    except Exception as err:
+        print(f'Other error occurred: {err}')
+    if len(recipe_steps) > 0:
+        recipe_steps = [html.H5("Steps:"), html.Ol([html.Li(children=recipe_steps[0]['steps'][n]['step']) for n in range(len(recipe_steps[0]['steps']))])]
+        ring = ring + recipe_steps
     # recipe missing ingredients
     rming = [{'name':n['name'],'id':n['id'],'aisle':n['aisle'],'amount':n['amount'],'unit':n['unit']} for n in sample_recipies[cur_recipe_idx]['missedIngredients']]
     logging.debug("Writing missing ingredients as {}".format(rming))
     
     # update button title
     rbutton = "Save " + str(sample_recipies[cur_recipe_idx]['missedIngredientCount']) + " Missing ingredients to cart"
-    return [{'display':'block'}, rtitle, rimg, ring, rming, rbutton, sample_recipies, cur_recipe_idx, ingredients_selected]
+    return [{'display':'block', 'border-radius':'25px', 'border':'15px solid #73AD21', 'padding':'20px',},
+            rtitle, rimg, ring, rming, rbutton, sample_recipies, cur_recipe_idx, ingredients_selected]
 
 """
 save_to_cart
@@ -243,7 +260,7 @@ def save_to_cart(save_cart,empty_cart,current_cart, missing_ing):
         logging.info("Empty cart was clicked more recently than save_cart")
         return [{'display':'none'}, '', None]
     if int(empty_cart) < int(save_cart):
-        logging.info("Save to cart clicked")
+        logging.info("Save to cart clicked, missing ingredients are {}".format(','.join([n['name'] for n in missing_ing])))
 
         # We will need to iterate over each ingredeint to get price
         # we already have aisle data
@@ -260,7 +277,8 @@ def save_to_cart(save_cart,empty_cart,current_cart, missing_ing):
                 logging.debug("Response is:  {}".format(ing_cost))
                 ingredient.update({'cost':ing_cost['estimatedCost']['value']})
             except HTTPError as http_err:
-                logging.error(f'HTTP error occurred: {http_err}')
+                logging.error(f'HTTP error occurred getting prices: {http_err}')
+                ingredient.update({'cost':0.00})
             except Exception as err:
                 logging.error(f'Other error occurred: {err}')
         logging.debug("Prices have been appended now display dataframe {}".format(missing_ing))
