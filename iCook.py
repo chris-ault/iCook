@@ -424,4 +424,4 @@ def make_cart(ingredient_dict):
 # the server should be started as follows:
 # Debugging set off, access may be limited by host ip, port is defined
 if __name__ == "__main__":
-    app.run_server(debug=False, host='0.0.0.0', port=8051)
+    app.run_server(debug=False, host='0.0.0.0', port=8050)
